@@ -14,43 +14,43 @@ let debug = Cu.import("resource://gre/modules/AndroidLog.jsm", {}).AndroidLog.d.
 let DATA_IMG = "data:image/svg+xml;charset=utf-8;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHhtbG5zOnhsaW5rPSJodHRwOi8vd3d3LnczLm9yZy8xOTk5L3hsaW5rIiB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiB2aWV3Qm94PSIwIDAgMzAwIDMwMCI%2BDQogIDxnIHN0cm9rZS13aWR0aD0iMzguMDA4NiIgc3Ryb2tlPSIjMDAwIj4NCiAgICA8ZyBpZD0ic3Znc3RhciIgdHJhbnNmb3JtPSJ0cmFuc2xhdGUoMTUwLCAxNTApIj4NCiAgICAgIDxwYXRoIGlkPSJzdmdiYXIiIGZpbGw9IiNmZmIxM2IiIA0KICAgICAgICBkPSJNLTg0LjE0ODcsLTE1Ljg1MTMgYTIyLjQxNzEsMjIuNDE3MSAwIDEgMCAwLDMxLjcwMjYgaDE2OC4yOTc0IGEyMi40MTcxLDIyLjQxNzEgMCAxIDAgMCwtMzEuNzAyNiBaIi8%2BDQogICAgICA8dXNlIHhsaW5rOmhyZWY9IiNzdmdiYXIiIHRyYW5zZm9ybT0icm90YXRlKDQ1KSIvPg0KICAgICAgPHVzZSB4bGluazpocmVmPSIjc3ZnYmFyIiB0cmFuc2Zvcm09InJvdGF0ZSg5MCkiLz4NCiAgICAgIDx1c2UgeGxpbms6aHJlZj0iI3N2Z2JhciIgdHJhbnNmb3JtPSJyb3RhdGUoMTM1KSIvPg0KICAgIDwvZz4NCiAgPC9nPg0KICA8dXNlIHhsaW5rOmhyZWY9IiNzdmdzdGFyIi8%2BDQo8L3N2Zz4%3D";
 
 let ImageBlockingPolicy = {
-	classDescription: "Click-To-View Image",
-	classID: Components.ID("{f55f77f9-d33d-4759-82fc-60db3ee0bb91}"),
-	contractID: "@starkravingfinkle.org/blockimages-policy;1",
-	xpcom_categories: ["content-policy"],
-	enabled: true,
+  classDescription: "Click-To-View Image",
+  classID: Components.ID("{f55f77f9-d33d-4759-82fc-60db3ee0bb91}"),
+  contractID: "@starkravingfinkle.org/blockimages-policy;1",
+  xpcom_categories: ["content-policy"],
+  enabled: true,
  
-	init: function(aEnabled) {
-		let registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
-		registrar.registerFactory(this.classID, this.classDescription, this.contractID, this);
+  init: function(aEnabled) {
+    let registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
+    registrar.registerFactory(this.classID, this.classDescription, this.contractID, this);
  
-		let catMan = Cc["@mozilla.org/categorymanager;1"].getService(Ci.nsICategoryManager);
-		for each (let category in this.xpcom_categories) {
-			catMan.addCategoryEntry(category, this.contractID, this.contractID, false, true);
-		}
-		this.enabled = aEnabled;
-	},
+    let catMan = Cc["@mozilla.org/categorymanager;1"].getService(Ci.nsICategoryManager);
+    for each (let category in this.xpcom_categories) {
+      catMan.addCategoryEntry(category, this.contractID, this.contractID, false, true);
+    }
+    this.enabled = aEnabled;
+  },
  
-	uninit: function() {
-		let catMan = Cc["@mozilla.org/categorymanager;1"].getService(Ci.nsICategoryManager);
-		for each(let category in this.xpcom_categories) {
-			catMan.deleteCategoryEntry(category, this.contractID, false);
-		}
+  uninit: function() {
+    let catMan = Cc["@mozilla.org/categorymanager;1"].getService(Ci.nsICategoryManager);
+    for each(let category in this.xpcom_categories) {
+      catMan.deleteCategoryEntry(category, this.contractID, false);
+    }
  
-		// This needs to run asynchronously, see bug 753687
-		Services.tm.currentThread.dispatch(function() {
-  		let registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
-			registrar.unregisterFactory(this.classID, this);
-		}.bind(this), Ci.nsIEventTarget.DISPATCH_NORMAL);
-	},
+    // This needs to run asynchronously, see bug 753687
+    Services.tm.currentThread.dispatch(function() {
+      let registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
+      registrar.unregisterFactory(this.classID, this);
+    }.bind(this), Ci.nsIEventTarget.DISPATCH_NORMAL);
+  },
 
-	setEnabled: function(aEnabled) {
-		this.enabled = aEnabled;
-	},
+  setEnabled: function(aEnabled) {
+    this.enabled = aEnabled;
+  },
 
-	// nsIContentPolicy interface implementation
-	shouldLoad: function(contentType, contentLocation, requestOrigin, node, mimeTypeGuess, extra) {
-		if (this.enabled && contentType === Ci.nsIContentPolicy.TYPE_IMAGE) {
+  // nsIContentPolicy interface implementation
+  shouldLoad: function(contentType, contentLocation, requestOrigin, node, mimeTypeGuess, extra) {
+    if (this.enabled && contentType === Ci.nsIContentPolicy.TYPE_IMAGE) {
       // Allow any non-http(s) image URLs
       if (!contentLocation.schemeIs("http") && !contentLocation.schemeIs("https")) {
         return Ci.nsIContentPolicy.ACCEPT;
@@ -69,27 +69,27 @@ let ImageBlockingPolicy = {
       }
 
       // Reject any image that is not associated with a DOM element
-		  return Ci.nsIContentPolicy.REJECT;
-		}
+      return Ci.nsIContentPolicy.REJECT;
+    }
 
     // Accept all other content types
-		return Ci.nsIContentPolicy.ACCEPT;
-	},
+    return Ci.nsIContentPolicy.ACCEPT;
+  },
  
-	shouldProcess: function(contentType, contentLocation, requestOrigin, node, mimeTypeGuess, extra) {
-		return Ci.nsIContentPolicy.ACCEPT;
-	},
+  shouldProcess: function(contentType, contentLocation, requestOrigin, node, mimeTypeGuess, extra) {
+    return Ci.nsIContentPolicy.ACCEPT;
+  },
  
-	// nsIFactory interface implementation
-	createInstance: function(outer, iid) {
-		if (outer) {
-			throw Cr.NS_ERROR_NO_AGGREGATION;
-		}
-		return this.QueryInterface(iid);
-	},
+  // nsIFactory interface implementation
+  createInstance: function(outer, iid) {
+    if (outer) {
+      throw Cr.NS_ERROR_NO_AGGREGATION;
+    }
+    return this.QueryInterface(iid);
+  },
  
-	// nsISupports interface implementation
-	QueryInterface: XPCOMUtils.generateQI([Ci.nsIContentPolicy, Ci.nsIFactory])
+  // nsISupports interface implementation
+  QueryInterface: XPCOMUtils.generateQI([Ci.nsIContentPolicy, Ci.nsIFactory])
 };
 
 
