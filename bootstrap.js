@@ -20,7 +20,7 @@ let ImageBlockingPolicy = {
   xpcom_categories: ["content-policy"],
   enabled: true,
  
-  init: function(aEnabled) {
+  init: function(enabled) {
     let registrar = Components.manager.QueryInterface(Ci.nsIComponentRegistrar);
     registrar.registerFactory(this.classID, this.classDescription, this.contractID, this);
  
@@ -28,7 +28,7 @@ let ImageBlockingPolicy = {
     for each (let category in this.xpcom_categories) {
       catMan.addCategoryEntry(category, this.contractID, this.contractID, false, true);
     }
-    this.enabled = aEnabled;
+    this.enabled = enabled;
   },
  
   uninit: function() {
@@ -44,25 +44,27 @@ let ImageBlockingPolicy = {
     }.bind(this), Ci.nsIEventTarget.DISPATCH_NORMAL);
   },
 
-  setEnabled: function(aEnabled) {
-    this.enabled = aEnabled;
+  setEnabled: function(enabled) {
+    this.enabled = enabled;
   },
 
   // nsIContentPolicy interface implementation
   shouldLoad: function(contentType, contentLocation, requestOrigin, node, mimeTypeGuess, extra) {
     if (this.enabled && contentType === Ci.nsIContentPolicy.TYPE_IMAGE) {
-      // Allow any non-http(s) image URLs
+      // Accept any non-http(s) image URLs
       if (!contentLocation.schemeIs("http") && !contentLocation.schemeIs("https")) {
         return Ci.nsIContentPolicy.ACCEPT;
       }
 
       if (node instanceof Ci.nsIDOMHTMLImageElement) {
         dump(node.outerHTML + "\n");
+        // Accept if the user has asked to view the image
         if (node.getAttribute("data-ctv-show") == "true") {
           return Ci.nsIContentPolicy.ACCEPT;
         }
 
         setTimeout(() => {
+          // Cache the original image URL and swap in our placeholder
           node.setAttribute("data-ctv-src", contentLocation.spec);
           node.setAttribute("src", DATA_IMG);
         }, 0);
