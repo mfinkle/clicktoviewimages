@@ -105,7 +105,18 @@ var NativeUI = {
   },
 
   createUI: function createUI(window) {
-    let selector =  window.NativeWindow.contextmenus.imageSaveableContext;
+    let selector = {
+      matches: function(element) {
+        if (element instanceof Ci.nsIDOMHTMLImageElement) {
+          // Only show the menuitem if we are blocking the image
+          if (element.getAttribute("data-ctv-show") == "true") {
+            return false;
+          }
+          return true;
+        }
+        return false;
+      }
+    }
     this.contextmenus.show = window.NativeWindow.contextmenus.add("Show Image", selector, (target) => {
       target.setAttribute("data-ctv-show", "true");
       target.setAttribute("src", target.getAttribute("data-ctv-src"));
