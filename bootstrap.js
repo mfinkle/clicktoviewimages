@@ -50,7 +50,11 @@ let ImageBlockingPolicy = {
 
   // nsIContentPolicy interface implementation
   shouldLoad: function(contentType, contentLocation, requestOrigin, node, mimeTypeGuess, extra) {
-    if (this.enabled && contentType === Ci.nsIContentPolicy.TYPE_IMAGE) {
+    if (!this.enabled) {
+      return Ci.nsIContentPolicy.ACCEPT;
+    }
+
+    if (contentType === Ci.nsIContentPolicy.TYPE_IMAGE || contentType === Ci.nsIContentPolicy.TYPE_IMAGESET) {
       // Accept any non-http(s) image URLs
       if (!contentLocation.schemeIs("http") && !contentLocation.schemeIs("https")) {
         return Ci.nsIContentPolicy.ACCEPT;
@@ -67,6 +71,10 @@ let ImageBlockingPolicy = {
           // Cache the original image URL and swap in our placeholder
           node.setAttribute("data-ctv-src", contentLocation.spec);
           node.setAttribute("src", DATA_IMG);
+
+          // For imageset (img + srcset) the "srcset" is used even after we reset the "src" causing a loop.
+          // We are given the final image URL anyway, so it's OK to just remove the "srcset" value.
+          node.removeAttribute("srcset");
         }, 0);
       }
 
